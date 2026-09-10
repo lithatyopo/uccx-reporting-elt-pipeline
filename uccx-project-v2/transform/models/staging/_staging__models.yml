@@ -1,0 +1,106 @@
+version: 2
+
+models:
+  - name: stg_agent_all_fields
+    description: >
+      Cleaned, deduplicated agent-level activity data at agent + report_period
+      grain. Source columns are renamed, typed, and the raw month/year label
+      is converted to an actual end-of-month date. One row per agent per
+      report period.
+    columns:
+      - name: report_period
+        description: End-of-month date representing the reporting period.
+        tests:
+          - not_null
+      - name: agent_id
+        description: Natural key for the agent, as provided by the source system.
+        tests:
+          - not_null
+      - name: agent_name
+        description: Agent's display name at the time of this report period.
+      - name: agent_extension
+        description: Agent's phone extension at the time of this report period.
+      - name: calls_presented_agent
+        description: Number of calls presented (offered) to the agent.
+      - name: calls_handled_agent
+        description: Number of calls the agent handled.
+      - name: calls_abandoned_agent
+        description: Number of calls abandoned while ringing/queued to the agent.
+      - name: handle_ratio_agent
+        description: Ratio of calls handled to calls presented for the agent.
+      - name: work_time
+        description: Total work time, in seconds.
+      - name: avg_handle_time
+        description: Average handle time per call, in seconds.
+      - name: avg_talk_time
+        description: Average talk time per call, in seconds.
+      - name: logged_in_time_hours
+        description: Total logged-in time for the period, in whole hours.
+      - name: not_ready_time_hours
+        description: Total time spent in Not Ready state, in whole hours.
+      - name: talk_time_hours
+        description: Total talk time for the period, in whole hours.
+      - name: outbound_calls
+        description: Total outbound calls placed on IPCC.
+      - name: transfer_to_agent
+        description: Count of ACD transfers into this agent.
+      - name: transfer_from_agent
+        description: Count of ACD transfers out from this agent.
+      - name: conference
+        description: Count of ACD conference calls involving this agent.
+      - name: ready_percent
+        description: Percent of logged-in time spent in Ready state.
+      - name: not_ready_percent
+        description: Percent of logged-in time spent in Not Ready state.
+
+  - name: stg_agent_state_detail
+    description: >
+      Cleaned, deduplicated agent state-transition events. One row per
+      agent, state, and transition timestamp.
+    columns:
+      - name: agent_id
+        description: Natural key for the agent, as provided by the source system.
+        tests:
+          - not_null
+      - name: agent_name
+        description: Agent's display name at the time of this event.
+      - name: agent_extension
+        description: Agent's phone extension at the time of this event.
+      - name: agent_state
+        description: The agent state entered (e.g. Ready, Not Ready, Talking).
+        tests:
+          - not_null
+      - name: state_reason
+        description: Reason code associated with the state, where applicable.
+      - name: state_transition_time
+        description: Timestamp the agent transitioned into this state.
+        tests:
+          - not_null
+
+  - name: stg_csq_activity
+    description: >
+      Cleaned, deduplicated Contact Service Queue (CSQ) activity data at
+      csq + report_period grain. One row per CSQ per report period.
+    columns:
+      - name: report_period
+        description: End-of-month date representing the reporting period.
+        tests:
+          - not_null
+      - name: csq_id
+        description: Natural key for the contact service queue.
+        tests:
+          - not_null
+      - name: csq_name
+        description: Display name of the contact service queue.
+      - name: calls_presented_csq
+        description: Number of calls presented to the queue.
+      - name: calls_handled_csq
+        description: Number of calls handled from the queue.
+      - name: calls_abandoned_csq
+        description: Number of calls abandoned while waiting in the queue.
+      - name: avg_queue_time
+        description: Average time calls spent queued, in seconds.
+      - name: max_queue_time
+        description: Maximum time any call spent queued, in seconds.
+      - name: avg_speed_of_answer
+        description: Average speed of answer for calls from this queue, in seconds.

@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: int_agent_month_enriched
+    description: >
+      Agent-month facts enriched with agent name and calendar attributes.
+      Shared building block for agent-side reporting marts (leaderboard,
+      productivity scorecard, activity, and average productivity) — avoids
+      repeating the fact_agent_month + dim_agents + dim_dates join across
+      multiple reporting models.
+    columns:
+      - name: agent_id
+        description: Natural key for the agent.
+        tests:
+          - not_null
+      - name: agent_name
+        description: Agent's current display name.
+      - name: report_period
+        description: End-of-month date representing the reporting period.
+        tests:
+          - not_null
+      - name: month_name
+        description: Full month name for the report period.
+      - name: calls_presented_agent
+        description: Number of calls presented to the agent this period.
+      - name: calls_handled_agent
+        description: Number of calls the agent handled this period.
+      - name: not_ready_time_hours
+        description: Total time in Not Ready state, in whole hours.
+      - name: outbound_calls
+        description: Total outbound calls placed.
+      - name: logged_in_time_hours
+        description: Total logged-in time, in whole hours.
+      - name: ready_percent
+        description: Percent of logged-in time spent Ready.

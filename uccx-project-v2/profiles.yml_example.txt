@@ -1,0 +1,12 @@
+uccx_dbt:
+  target: lab
+  outputs:
+    lab:
+      type: postgres
+      threads: 4
+      host: your-database-server-hostname
+      port: port-number
+      dbname: uccx
+      schema: uccxmodels
+      user: your-username
+      password: your-password

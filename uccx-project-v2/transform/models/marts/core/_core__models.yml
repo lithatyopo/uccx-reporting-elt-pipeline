@@ -1,0 +1,207 @@
+version: 2
+
+models:
+  - name: dim_agents
+    description: >
+      Agent dimension. One row per agent (deduplicated to current/latest
+      attributes — Type 1 SCD handling).
+    columns:
+      - name: dim_agent_key
+        description: Surrogate key for the agent dimension, generated from agent_id.
+        tests:
+          - not_null
+          - unique
+      - name: agent_id
+        description: Natural key for the agent, as provided by the source system.
+        tests:
+          - not_null
+          - unique
+      - name: agent_name
+        description: Agent's current display name.
+      - name: agent_extension
+        description: Agent's current phone extension.
+
+  - name: dim_csq
+    description: >
+      Contact Service Queue dimension. One row per CSQ (deduplicated to
+      current/latest attributes — Type 1 SCD handling).
+    columns:
+      - name: dim_csq_key
+        description: Surrogate key for the CSQ dimension, generated from csq_id.
+        tests:
+          - not_null
+          - unique
+      - name: csq_id
+        description: Natural key for the contact service queue.
+        tests:
+          - not_null
+          - unique
+      - name: csq_name
+        description: Current display name of the contact service queue.
+
+  - name: dim_dates
+    description: Daily date dimension spanning the loaded reporting range.
+    columns:
+      - name: dim_date_key
+        description: Surrogate key for the date dimension, generated from date_day.
+        tests:
+          - not_null
+          - unique
+      - name: date_day
+        description: Calendar date for this row.
+        tests:
+          - not_null
+          - unique
+      - name: day_of_week
+        description: Day of the week.
+      - name: day_of_month
+        description: Day of the month (1-31).
+      - name: day_of_year
+        description: Day of the year (1-366).
+      - name: week_of_year
+        description: ISO week number of the year.
+      - name: month_of_year
+        description: Month number (1-12).
+      - name: month_name
+        description: Full month name.
+      - name: quarter_of_year
+        description: Calendar quarter (1-4).
+      - name: year_number
+        description: Calendar year.
+
+  - name: fact_agent_month
+    description: >
+      Agent performance facts at agent + report_period (monthly) grain.
+      One row per agent per month.
+    columns:
+      - name: fact_agent_month_key
+        description: Surrogate key generated from agent_id + report_period.
+        tests:
+          - not_null
+          - unique
+      - name: dim_agent_key
+        description: Foreign key to dim_agents.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_agents')
+              field: dim_agent_key
+      - name: dim_date_key
+        description: Foreign key to dim_dates (matches the last day of report_period).
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_dates')
+              field: dim_date_key
+      - name: agent_id
+        description: Natural key for the agent.
+      - name: report_period
+        description: End-of-month date representing the reporting period.
+        tests:
+          - not_null
+      - name: calls_presented_agent
+        description: Number of calls presented to the agent this period.
+      - name: calls_handled_agent
+        description: Number of calls the agent handled this period.
+      - name: handle_ratio_agent
+        description: Ratio of calls handled to calls presented.
+      - name: avg_handle_time
+        description: Average handle time per call, in seconds.
+      - name: avg_talk_time
+        description: Average talk time per call, in seconds.
+      - name: work_time
+        description: Total work time, in seconds.
+      - name: not_ready_time_hours
+        description: Total time in Not Ready state, in whole hours.
+      - name: ready_percent
+        description: Percent of logged-in time spent Ready.
+      - name: not_ready_percent
+        description: Percent of logged-in time spent Not Ready.
+      - name: logged_in_time_hours
+        description: Total logged-in time, in whole hours.
+      - name: talk_time_hours
+        description: Total talk time, in whole hours.
+      - name: outbound_calls
+        description: Total outbound calls placed.
+      - name: transfer_to_agent
+        description: Count of ACD transfers into this agent.
+      - name: conference
+        description: Count of ACD conference calls involving this agent.
+
+  - name: fact_agent_state_day
+    description: >
+      Agent state-transition event facts. One row per agent state
+      transition event.
+    columns:
+      - name: fact_agent_state_key
+        description: Surrogate key generated from agent_id + state_transition_time.
+        tests:
+          - not_null
+          - unique
+      - name: dim_agent_key
+        description: Foreign key to dim_agents.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_agents')
+              field: dim_agent_key
+      - name: dim_date_key
+        description: Foreign key to dim_dates (matches the calendar day of the transition).
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_dates')
+              field: dim_date_key
+      - name: agent_id
+        description: Natural key for the agent.
+      - name: state_transition_time
+        description: Timestamp the agent transitioned into this state.
+        tests:
+          - not_null
+      - name: agent_state
+        description: The agent state entered.
+      - name: state_reason
+        description: Reason code associated with the state, where applicable.
+
+  - name: fact_csq_month
+    description: >
+      Contact Service Queue performance facts at csq + report_period
+      (monthly) grain. One row per CSQ per month.
+    columns:
+      - name: fact_csq_month_key
+        description: Surrogate key generated from csq_id + report_period.
+        tests:
+          - not_null
+          - unique
+      - name: dim_csq_key
+        description: Foreign key to dim_csq.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_csq')
+              field: dim_csq_key
+      - name: dim_date_key
+        description: Foreign key to dim_dates (matches the last day of report_period).
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_dates')
+              field: dim_date_key
+      - name: csq_id
+        description: Natural key for the contact service queue.
+      - name: report_period
+        description: End-of-month date representing the reporting period.
+        tests:
+          - not_null
+      - name: calls_presented_csq
+        description: Number of calls presented to the queue this period.
+      - name: calls_handled_csq
+        description: Number of calls handled from the queue this period.
+      - name: calls_abandoned_csq
+        description: Number of calls abandoned while queued this period.
+      - name: avg_queue_time
+        description: Average time calls spent queued, in seconds.
+      - name: max_queue_time
+        description: Maximum time any call spent queued, in seconds.
+      - name: avg_speed_of_answer
+        description: Average speed of answer, in seconds.

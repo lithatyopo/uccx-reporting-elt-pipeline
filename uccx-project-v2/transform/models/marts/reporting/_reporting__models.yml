@@ -1,0 +1,137 @@
+version: 2
+
+models:
+  - name: rpt_agent_leaderboard
+    description: >
+      Monthly agent leaderboard ranked by calls handled, with a quartile-based
+      performance tier. Powers the Metabase leaderboard dashboard.
+    columns:
+      - name: agent_id
+        description: Natural key for the agent.
+        tests:
+          - not_null
+      - name: agent_name
+        description: Agent's current display name.
+      - name: report_period
+        description: End-of-month date representing the reporting period.
+        tests:
+          - not_null
+      - name: calls_handled_agent
+        description: Number of calls the agent handled this period.
+      - name: calls_handled_rank
+        description: Agent's rank within the report period by calls handled (1 = most calls handled).
+      - name: calls_handled_quartile
+        description: Quartile (1-4) of the agent's calls-handled volume within the report period.
+      - name: performance_tier
+        description: >
+          Human-readable label derived from calls_handled_quartile
+          ('Top Performer', 'On Track', 'Needs Support').
+
+  - name: rpt_agent_productivity_scorecard
+    description: >
+      Per-agent monthly productivity score with month-over-month change
+      and trend direction. Powers the Metabase productivity scorecard.
+    columns:
+      - name: report_period
+        description: End-of-month date representing the reporting period.
+        tests:
+          - not_null
+      - name: agent_name
+        description: Agent's current display name.
+        tests:
+          - not_null
+      - name: calls_handled_agent
+        description: Number of calls the agent handled this period.
+      - name: logged_in_time_hours
+        description: Total logged-in time, in whole hours.
+      - name: ready_percent
+        description: Percent of logged-in time spent Ready.
+      - name: productivity
+        description: Calls handled per logged-in hour, scaled to an 8-hour shift.
+      - name: productivity_change
+        description: Raw change in productivity vs. the prior report period for this agent (null for an agent's first period).
+      - name: productivity_mom_difference
+        description: Month-over-month change in productivity, with null coalesced to 0.
+      - name: productivity_trend
+        description: "Direction of change vs. the prior period: 'Increased', 'Decreased', or '-'."
+
+  - name: rpt_agent_activity
+    description: >
+      Per-agent monthly activity ratio, comparing inbound calls handled
+      to total call activity (handled + outbound). Powers the Metabase
+      agent activity dashboard.
+    columns:
+      - name: report_period
+        description: End-of-month date representing the reporting period.
+        tests:
+          - not_null
+      - name: agent_name
+        description: Agent's current display name.
+        tests:
+          - not_null
+      - name: not_ready_time_hours
+        description: Total time in Not Ready state, in whole hours.
+      - name: calls_presented_agent
+        description: Number of calls presented to the agent this period.
+      - name: calls_handled_agent
+        description: Number of calls the agent handled this period.
+      - name: activity_ratio
+        description: Calls handled as a percentage of (calls handled + outbound calls).
+
+  - name: rpt_all_agent_average_productivity
+    description: >
+      Team-wide monthly productivity rate (total calls handled ÷ total
+      logged-in hours, scaled to an 8-hour shift), with month-over-month
+      change and trend direction. Powers the Metabase team productivity
+      dashboard.
+    columns:
+      - name: report_period
+        description: End-of-month date representing the reporting period.
+        tests:
+          - not_null
+          - unique
+      - name: avg_productivity
+        description: >
+          Team-wide productivity rate for the period: total calls handled
+          divided by total logged-in hours across all agents, scaled to
+          an 8-hour shift.
+      - name: avg_logged_in_time_hours
+        description: Average logged-in hours per agent for the period.
+      - name: avg_calls_handled_agent
+        description: Average calls handled per agent for the period.
+      - name: productivity_change
+        description: Raw change in avg_productivity vs. the prior report period (null for the first period).
+      - name: productivity_mom_difference
+        description: Month-over-month change in avg_productivity, with null coalesced to 0.
+      - name: productivity_trend
+        description: "Direction of change vs. the prior period: 'Increased', 'Decreased', or '-'."
+
+  - name: rpt_queue_performance
+    description: >
+      Per-CSQ monthly queue performance, including abandon rate and
+      handle rate. Powers the Metabase queue performance dashboard.
+    columns:
+      - name: month_name
+        description: Full month name for the report period.
+      - name: csq_name
+        description: Display name of the contact service queue.
+        tests:
+          - not_null
+      - name: report_period
+        description: End-of-month date representing the reporting period.
+        tests:
+          - not_null
+      - name: avg_speed_of_answer
+        description: Average speed of answer, in seconds (rounded to whole seconds).
+      - name: calls_abandoned_csq
+        description: Number of calls abandoned while queued this period.
+      - name: calls_presented_csq
+        description: Number of calls presented to the queue this period.
+      - name: calls_handled_csq
+        description: Number of calls handled from the queue this period.
+      - name: avg_queue_time
+        description: Average time calls spent queued, in seconds (rounded to whole seconds).
+      - name: abandon_percent
+        description: Calls abandoned as a percentage of calls presented.
+      - name: handle_percent
+        description: Calls handled as a percentage of calls presented.
